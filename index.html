@@ -373,7 +373,6 @@
       z-index: 1;
       font-weight: 600;
     }
-    }
 
     .btn-ghost {
       background-color: var(--color-pure-white);
@@ -1354,10 +1353,6 @@
     @keyframes aurora {
       from { background-position: 50% 50%, 50% 50%; }
       to { background-position: 350% 50%, 350% 50%; }
-    }
-      33% { transform: translate(5%, 10%) scale(1.1) rotate(5deg); }
-      66% { transform: translate(10%, -5%) scale(0.9) rotate(-5deg); }
-      100% { transform: translate(-5%, 5%) scale(1.05) rotate(2deg); }
     }
     
   </style>
@@ -2555,9 +2550,13 @@
     const SUPABASE_URL = 'https://ikqwztyyyonraoquyerv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrcXd6dHl5eW9ucmFvcXV5ZXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzUxMTYsImV4cCI6MjEwMTk1MTExNn0.qRdTmQw3qgwIOZAx_P-CQbXeb5dHLThBPuwOk_o6fJ0';
     
-    let supabase = null;
-    if (SUPABASE_URL !== '여기에_URL을_입력하세요') {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
+    try {
+      if (typeof supabase !== 'undefined' && SUPABASE_URL !== '여기에_URL을_입력하세요') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn("Supabase 초기화 실패:", e);
     }
     // --- Supabase 설정 끝 ---
 
@@ -2699,13 +2698,13 @@
       const price = document.getElementById('calcPriceDisplay').innerText;
       quoteDetails += ` (예상 견적가: ${price})`;
       
-      if (!supabase) {
+      if (!supabaseClient) {
         alert('[테스트 모드] Supabase API 연동 전입니다.\n(URL 및 KEY를 코드에 입력해주세요.)\n\n확인된 데이터:\n이름: ' + name + '\n견적: ' + quoteDetails);
         return;
       }
       
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('consultations')
           .insert([
             { address, size, name, phone, requests, quote_details: quoteDetails }
