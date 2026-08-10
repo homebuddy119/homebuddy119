@@ -2712,6 +2712,24 @@
           
         if (error) throw error;
         
+        // --- 디스코드 웹훅 알림 전송 시작 ---
+        try {
+          const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1428685207745335337/jOgtnC_AH5H3sro73V3qR1jKwvg7Fs0K4J6c4qALLFQvtRMYdv-CuC4IFwdVTdDYIuTU';
+          
+          const discordMessage = {
+            content: `🚨 **새로운 홈버디 상담 예약이 접수되었습니다!** 🚨\n\n👤 **고객명**: ${name}\n📱 **연락처**: ${phone}\n🏠 **주소**: ${address}\n📏 **집 평수**: ${size}m²\n\n💰 **선택 견적**: ${quoteDetails}\n📝 **기타 요청**: ${requests || '없음'}`
+          };
+          
+          fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(discordMessage)
+          });
+        } catch (discordErr) {
+          console.error('디스코드 전송 오류:', discordErr);
+        }
+        // --- 디스코드 웹훅 알림 전송 끝 ---
+        
         alert('상담 신청이 정상적으로 접수되었습니다. 홈버디 위생 전담팀이 1시간 내로 안내 연락드리겠습니다.');
         closeModal();
         e.target.reset(); // 폼 초기화
