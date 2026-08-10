@@ -2525,9 +2525,9 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
       <form onsubmit="submitForm(event)">
-        <input type="text" class="form-input" placeholder="주소 (예: 서울시/노원구)" required>
-        <input type="number" class="form-input" placeholder="집 평수(m²) (예: 24)" required>
-        <input type="text" class="form-input" placeholder="고객명 (예: 홍길동)" required>
+        <input type="text" id="reqAddress" class="form-input" placeholder="주소 (예: 서울시/노원구)" required>
+        <input type="number" id="reqSize" class="form-input" placeholder="집 평수(m²) (예: 24)" required>
+        <input type="text" id="reqName" class="form-input" placeholder="고객명 (예: 홍길동)" required>
         
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
           <input type="tel" id="phone1" class="form-input" style="text-align: center; margin-bottom: 0;" placeholder="010" maxlength="3" required oninput="if(this.value.length === 3) document.getElementById('phone2').focus()">
@@ -2537,7 +2537,7 @@
           <input type="tel" id="phone3" class="form-input" style="text-align: center; margin-bottom: 0;" placeholder="0000" maxlength="4" required>
         </div>
 
-        <textarea class="form-input" rows="3" placeholder="기타 요청"></textarea>
+        <textarea id="reqRequests" class="form-input" rows="3" placeholder="기타 요청"></textarea>
 
         <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 24px; color: var(--color-slate-gray); cursor: pointer;">
           <input type="checkbox" required style="width: 16px; height: 16px;"> 개인정보 수집 및 이용에 동의합니다.
@@ -2548,7 +2548,19 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // --- Supabase 설정 시작 ---
+    // 나중에 친구분의 계정으로 변경 시 아래 URL과 KEY 값만 새로 붙여넣으시면 됩니다.
+    const SUPABASE_URL = '여기에_URL을_입력하세요';
+    const SUPABASE_ANON_KEY = '여기에_ANON_KEY를_입력하세요';
+    
+    let supabase = null;
+    if (SUPABASE_URL !== '여기에_URL을_입력하세요') {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    // --- Supabase 설정 끝 ---
+
     // Tab switching logic for Pricing
     function switchPriceTab(tabId) {
       document.querySelectorAll('.pricing-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -2664,10 +2676,50 @@
       document.getElementById('consultModal').classList.remove('active');
     }
 
-    function submitForm(e) {
+    async function submitForm(e) {
       e.preventDefault();
-      alert('상담 신청이 정상적으로 접수되었습니다. 홈버디 위생 전담팀이 1시간 내로 안내 연락드리겠습니다.');
-      closeModal();
+      
+      const address = document.getElementById('reqAddress').value;
+      const size = document.getElementById('reqSize').value;
+      const name = document.getElementById('reqName').value;
+      const phone = document.getElementById('phone1').value + '-' + 
+                    document.getElementById('phone2').value + '-' + 
+                    document.getElementById('phone3').value;
+      const requests = document.getElementById('reqRequests').value;
+      
+      // 계산기 선택 조건 수집
+      let typeStr = calcState.type === 'once' ? '원데이 케어' : '정기 구독';
+      let sizeStr = calcState.size === 0 ? '30평대 미만' : (calcState.size === 1 ? '30~40평대' : '50평대 이상');
+      let bathStr = calcState.bath === 1 ? '욕실 1개' : '욕실 2개';
+      let freqStr = calcState.freq === 'm1' ? '월 1회' : (calcState.freq === 'm2' ? '월 2회' : '월 4회');
+      
+      let quoteDetails = `[선택 견적] ${typeStr} / ${sizeStr} / ${bathStr}`;
+      if (calcState.type === 'sub') quoteDetails += ` / ${freqStr}`;
+      
+      const price = document.getElementById('calcPriceDisplay').innerText;
+      quoteDetails += ` (예상 견적가: ${price})`;
+      
+      if (!supabase) {
+        alert('[테스트 모드] Supabase API 연동 전입니다.\n(URL 및 KEY를 코드에 입력해주세요.)\n\n확인된 데이터:\n이름: ' + name + '\n견적: ' + quoteDetails);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('consultations')
+          .insert([
+            { address, size, name, phone, requests, quote_details: quoteDetails }
+          ]);
+          
+        if (error) throw error;
+        
+        alert('상담 신청이 정상적으로 접수되었습니다. 홈버디 위생 전담팀이 1시간 내로 안내 연락드리겠습니다.');
+        closeModal();
+        e.target.reset(); // 폼 초기화
+      } catch (error) {
+        console.error('Supabase 저장 오류:', error.message);
+        alert('접수 중 오류가 발생했습니다: ' + error.message);
+      }
     }
 
     // Scroll reveal observer
