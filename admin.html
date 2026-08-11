@@ -93,9 +93,9 @@
     <!-- 1. 로그인 뷰 -->
     <div id="login-view">
       <h2 style="margin-bottom: 8px;">관리자 로그인</h2>
-      <p style="color: var(--color-slate-gray); font-size: 14px; margin-bottom: 24px;">관리자 전용 비밀번호를 입력하세요.</p>
+      <p style="color: var(--color-slate-gray); font-size: 14px; margin-bottom: 24px;">관리자 이메일과 비밀번호를 입력하세요.</p>
       <form onsubmit="handleLogin(event)">
-        <!-- 이메일은 코드에 고정해두고 화면에서는 숨김 -->
+        <input type="email" id="emailInput" class="form-input" placeholder="이메일 주소" style="margin-bottom: 12px;" required>
         <input type="password" id="pwInput" class="form-input" placeholder="비밀번호" required>
         <button type="submit" class="btn btn-primary" id="loginBtn">로그인</button>
       </form>
@@ -166,7 +166,7 @@
     async function handleLogin(e) {
       e.preventDefault();
       // 화면에는 없지만, 백그라운드에서 고정된 아이디를 사용합니다.
-      const email = 'admin@homebuddy.com'; 
+      const email = document.getElementById('emailInput').value;
       const password = document.getElementById('pwInput').value;
       const btn = document.getElementById('loginBtn');
       
