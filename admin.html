@@ -227,9 +227,13 @@
       }
     }
 
-    // 상태 업데이트 (완료 처리)
+    // 상태 업데이트
     async function updateStatus(id, newStatus) {
-      if(!confirm('이 요청을 완료 처리하시겠습니까?')) return;
+      let msg = '이 요청을 완료 처리하시겠습니까?';
+      if (newStatus === 'canceled') msg = '이 요청을 취소 처리하시겠습니까?';
+      else if (newStatus === 'in_progress') msg = '이 요청을 다시 진행중으로 복구하시겠습니까?';
+      
+      if(!confirm(msg)) return;
       
       const { error } = await supabaseClient
         .from('consultations')
@@ -290,12 +294,12 @@
         else if(currentTab === 'completed') badge = '<span class="status-badge status-completed">완료</span>';
         else badge = '<span class="status-badge status-canceled">취소</span>';
         
-        let actionsHtml = '<div style="text-align: right; margin-top: 16px;">';
+        let actionsHtml = '<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">';
         if(currentTab === 'in_progress') {
-          actionsHtml += `<button class="btn btn-outline" style="color:var(--color-rose); border-color:var(--color-rose); margin-right: 8px;" onclick="updateStatus('${req.id}', 'canceled')">✕ 취소 처리</button>`;
           actionsHtml += `<button class="btn btn-primary" onclick="updateStatus('${req.id}', 'completed')">✓ 완료 처리</button>`;
+          actionsHtml += `<button class="btn btn-primary" style="background:var(--color-rose);" onclick="updateStatus('${req.id}', 'canceled')">✕ 취소 처리</button>`;
         } else {
-          actionsHtml += `<button class="btn btn-outline" onclick="updateStatus('${req.id}', 'in_progress')">↩ 진행중으로 복구</button>`;
+          actionsHtml += `<button class="btn btn-outline" style="width: 100%; text-align: center;" onclick="updateStatus('${req.id}', 'in_progress')">↩ 진행중으로 복구</button>`;
         }
         actionsHtml += '</div>';
         
