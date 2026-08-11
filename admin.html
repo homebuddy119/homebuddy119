@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>홈버디 - 관리자 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --color-cream: #F9F6F0;
+      --color-navy: #202A44;
+      --color-olive: #5A6F44;
+      --color-pure-white: #ffffff;
+      --color-surface-ivory: #F2EFE8;
+      --color-slate-gray: #6B778D;
+      --color-hairline: rgba(32, 42, 68, 0.12);
+      --color-electric-cobalt: #5A6F44; /* Olive accent */
+      --color-powder-blue: #E8F4F8;
+      
+      --font-family: 'Pretendard', 'Inter', sans-serif;
+      --radius-cards: 16px;
+      --radius-buttons: 8px;
+      --shadow-subtle: 0 4px 12px rgba(32, 42, 68, 0.04);
+      --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: inherit; }
+    body { background-color: var(--color-cream); color: var(--color-navy); font-family: var(--font-family); -webkit-font-smoothing: antialiased; }
+    
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    
+    /* Header */
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--color-hairline); }
+    .admin-logo { font-size: 24px; font-weight: 800; letter-spacing: -0.05em; display: flex; align-items: center; gap: 8px; }
+    
+    /* Login View */
+    #login-view { max-width: 400px; margin: 100px auto; background: var(--color-pure-white); padding: 40px; border-radius: var(--radius-cards); box-shadow: var(--shadow-subtle); text-align: center; }
+    .form-input { width: 100%; padding: 12px 16px; border: 1px solid var(--color-hairline); border-radius: var(--radius-buttons); margin-bottom: 16px; font-size: 15px; outline: none; }
+    .form-input:focus { border-color: var(--color-electric-cobalt); }
+    .btn { padding: 12px 24px; border-radius: var(--radius-buttons); font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: var(--transition-smooth); width: 100%; }
+    .btn-primary { background: var(--color-electric-cobalt); color: white; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid var(--color-hairline); color: var(--color-navy); width: auto; padding: 8px 16px; font-size: 13px; }
+    
+    /* Dashboard View */
+    #dashboard-view { display: none; }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 12px; margin-bottom: 24px; }
+    .tab-btn { padding: 10px 24px; border: none; background: transparent; font-size: 16px; font-weight: 600; color: var(--color-slate-gray); cursor: pointer; border-bottom: 3px solid transparent; transition: var(--transition-smooth); }
+    .tab-btn.active { color: var(--color-electric-cobalt); border-bottom-color: var(--color-electric-cobalt); }
+    
+    /* List / Accordion */
+    .request-list { display: flex; flex-direction: column; gap: 12px; }
+    .request-card { background: var(--color-pure-white); border: 1px solid var(--color-hairline); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-subtle); }
+    
+    .req-summary { padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr 1.5fr auto; align-items: center; cursor: pointer; transition: background 0.2s; }
+    .req-summary:hover { background: var(--color-surface-ivory); }
+    @media(max-width: 600px) { .req-summary { grid-template-columns: 1fr auto; gap: 12px; } .hide-mobile { display: none; } }
+    
+    .req-date { font-size: 13px; color: var(--color-slate-gray); }
+    .req-name { font-size: 16px; font-weight: 700; }
+    .req-phone { font-size: 14px; color: var(--color-slate-gray); }
+    
+    .req-details { display: none; padding: 24px; border-top: 1px solid var(--color-hairline); background: #fafafa; }
+    .req-details.open { display: block; animation: slideDown 0.3s ease-out; }
+    
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .detail-grid { display: grid; grid-template-columns: 100px 1fr; gap: 12px; font-size: 14px; margin-bottom: 20px; }
+    .detail-label { font-weight: 600; color: var(--color-slate-gray); }
+    .detail-value { color: var(--color-navy); font-weight: 500; }
+    
+    .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .status-in-progress { background: #fff3cd; color: #d9480f; }
+    .status-completed { background: var(--color-powder-blue); color: var(--color-electric-cobalt); }
+    .status-canceled { background: #ffe3e3; color: #c92a2a; }
+    
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--color-slate-gray); font-size: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="admin-header">
+      <div class="admin-logo">홈버디 관리자</div>
+      <button id="logoutBtn" class="btn btn-outline" style="display:none;" onclick="logout()">로그아웃</button>
+    </div>
+
+    <!-- 1. 로그인 뷰 -->
+    <div id="login-view">
+      <h2 style="margin-bottom: 8px;">관리자 로그인</h2>
+      <p style="color: var(--color-slate-gray); font-size: 14px; margin-bottom: 24px;">관리자 전용 비밀번호를 입력하세요.</p>
+      <form onsubmit="handleLogin(event)">
+        <!-- 이메일은 코드에 고정해두고 화면에서는 숨김 -->
+        <input type="password" id="pwInput" class="form-input" placeholder="비밀번호" required>
+        <button type="submit" class="btn btn-primary" id="loginBtn">로그인</button>
+      </form>
+    </div>
+
+    <!-- 2. 대시보드 뷰 -->
+    <div id="dashboard-view">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; border-bottom: 1px solid var(--color-hairline); padding-bottom: 12px;">
+        <div class="tabs" style="margin-bottom:0;">
+          <button class="tab-btn active" onclick="switchTab('in_progress')">진행중</button>
+          <button class="tab-btn" onclick="switchTab('completed')">완료</button>
+          <button class="tab-btn" onclick="switchTab('canceled')">취소</button>
+        </div>
+        <button class="btn btn-outline" style="color:var(--color-rose); border-color:var(--color-rose);" onclick="deleteSelected()">선택 삭제</button>
+      </div>
+      
+      <div id="request-list-container" class="request-list">
+        <!-- 데이터 렌더링 영역 -->
+        <div class="empty-state">데이터를 불러오는 중입니다...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // --- Supabase 설정 ---
+    // 주의: index.html에 넣으셨던 동일한 URL과 ANON_KEY를 여기에 붙여넣어 주세요!
+    const SUPABASE_URL = 'https://ikqwztyyyonraoquyerv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrcXd6dHl5eW9ucmFvcXV5ZXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzUxMTYsImV4cCI6MjEwMTk1MTExNn0.qRdTmQw3qgwIOZAx_P-CQbXeb5dHLThBPuwOk_o6fJ0';
+    
+    let supabaseClient = null;
+    try {
+      if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn("Supabase 초기화 실패:", e);
+    }
+
+    let currentTab = 'in_progress';
+    let allRequests = [];
+
+    // 세션 체크 (자동 로그인)
+    async function checkSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    }
+
+    // 화면 전환
+    function showLogin() {
+      document.getElementById('login-view').style.display = 'block';
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+
+    function showDashboard() {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'block';
+      fetchRequests();
+    }
+
+    // 로그인
+    async function handleLogin(e) {
+      e.preventDefault();
+      // 화면에는 없지만, 백그라운드에서 고정된 아이디를 사용합니다.
+      const email = 'admin@homebuddy.com'; 
+      const password = document.getElementById('pwInput').value;
+      const btn = document.getElementById('loginBtn');
+      
+      btn.innerText = '로딩중...';
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      btn.innerText = '로그인';
+      
+      if (error) {
+        alert('로그인 실패: ' + error.message);
+      } else {
+        showDashboard();
+      }
+    }
+
+    // 로그아웃
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      showLogin();
+    }
+
+    // 탭 전환
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      if(tab === 'in_progress') document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      else if(tab === 'completed') document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      else document.querySelectorAll('.tab-btn')[2].classList.add('active');
+      
+      renderList();
+    }
+
+    // 데이터 가져오기
+    async function fetchRequests() {
+      const { data, error } = await supabaseClient
+        .from('consultations')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error('Fetch error:', error);
+        alert('데이터를 불러오지 못했습니다. (권한 또는 status 컬럼 유무를 확인해주세요.)');
+        return;
+      }
+      
+      allRequests = data || [];
+      renderList();
+    }
+
+    // 아코디언 토글
+    function toggleDetails(id) {
+      const el = document.getElementById('detail-' + id);
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+      } else {
+        // Close others
+        document.querySelectorAll('.req-details').forEach(d => d.classList.remove('open'));
+        el.classList.add('open');
+      }
+    }
+
+    // 상태 업데이트 (완료 처리)
+    async function updateStatus(id, newStatus) {
+      if(!confirm('이 요청을 완료 처리하시겠습니까?')) return;
+      
+      const { error } = await supabaseClient
+        .from('consultations')
+        .update({ status: newStatus })
+        .eq('id', id);
+        
+      if (error) {
+        alert('상태 변경 실패: ' + error.message);
+      } else {
+        fetchRequests(); // 재조회
+      }
+    }
+
+    // 선택 삭제
+    async function deleteSelected() {
+      const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+      const ids = Array.from(checkboxes).map(cb => cb.value);
+      
+      if(ids.length === 0) {
+        alert('삭제할 항목을 선택해주세요.');
+        return;
+      }
+      if(!confirm(`선택한 ${ids.length}개의 내역을 영구적으로 삭제하시겠습니까?`)) return;
+      
+      const { error } = await supabaseClient
+        .from('consultations')
+        .delete()
+        .in('id', ids);
+        
+      if(error) {
+        alert('삭제 실패: ' + error.message);
+      } else {
+        fetchRequests(); // 재조회
+      }
+    }
+
+    // 화면 렌더링
+    function renderList() {
+      const container = document.getElementById('request-list-container');
+      
+      // status 컬럼이 없거나 null인 경우 기본값을 in_progress로 취급
+      const filtered = allRequests.filter(req => {
+        const status = req.status || 'in_progress';
+        return status === currentTab;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state">해당하는 접수 내역이 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(req => {
+        const date = new Date(req.created_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit' });
+        
+        let badge = '';
+        if(currentTab === 'in_progress') badge = '<span class="status-badge status-in-progress">진행중</span>';
+        else if(currentTab === 'completed') badge = '<span class="status-badge status-completed">완료</span>';
+        else badge = '<span class="status-badge status-canceled">취소</span>';
+        
+        let actionsHtml = '<div style="text-align: right; margin-top: 16px;">';
+        if(currentTab === 'in_progress') {
+          actionsHtml += `<button class="btn btn-outline" style="color:var(--color-rose); border-color:var(--color-rose); margin-right: 8px;" onclick="updateStatus('${req.id}', 'canceled')">✕ 취소 처리</button>`;
+          actionsHtml += `<button class="btn btn-primary" onclick="updateStatus('${req.id}', 'completed')">✓ 완료 처리</button>`;
+        } else {
+          actionsHtml += `<button class="btn btn-outline" onclick="updateStatus('${req.id}', 'in_progress')">↩ 진행중으로 복구</button>`;
+        }
+        actionsHtml += '</div>';
+        
+        html += `
+          <div class="request-card">
+            <div class="req-summary" onclick="toggleDetails('${req.id}')" style="grid-template-columns: 30px 1fr 2fr 1.5fr auto; gap: 8px;">
+              <div onclick="event.stopPropagation()">
+                <input type="checkbox" class="row-checkbox" value="${req.id}" style="width:16px; height:16px; cursor:pointer;">
+              </div>
+              <div class="req-name">${req.name}</div>
+              <div class="req-phone hide-mobile">${req.phone}</div>
+              <div class="req-date hide-mobile">${date}</div>
+              <div>${badge} <span style="color:#cbd5e1; margin-left:8px; font-size:12px;">▼</span></div>
+            </div>
+            
+            <div id="detail-${req.id}" class="req-details">
+              <div class="detail-grid">
+                <div class="detail-label">접수 일시</div><div class="detail-value">${date}</div>
+                <div class="detail-label">연락처</div><div class="detail-value">${req.phone}</div>
+                <div class="detail-label">주소</div><div class="detail-value">${req.address || '-'}</div>
+                <div class="detail-label">집 평수</div><div class="detail-value">${req.size ? req.size + 'm²' : '-'}</div>
+                <div class="detail-label">견적 내역</div><div class="detail-value" style="color:var(--color-electric-cobalt); font-weight:700;">${req.quote_details || '-'}</div>
+                <div class="detail-label">기타 요청</div><div class="detail-value" style="white-space: pre-wrap;">${req.requests || '없음'}</div>
+              </div>
+              ${actionsHtml}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // 초기화
+    if(supabaseClient) {
+      checkSession();
+    }
+  </script>
+</body>
+</html>

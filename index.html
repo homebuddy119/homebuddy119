@@ -2547,8 +2547,8 @@
   <script>
     // --- Supabase 설정 시작 ---
     // 나중에 친구분의 계정으로 변경 시 아래 URL과 KEY 값만 새로 붙여넣으시면 됩니다.
-    const SUPABASE_URL = 'https://ikqwztyyyonraoquyerv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrcXd6dHl5eW9ucmFvcXV5ZXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNzUxMTYsImV4cCI6MjEwMTk1MTExNn0.qRdTmQw3qgwIOZAx_P-CQbXeb5dHLThBPuwOk_o6fJ0';
+    const SUPABASE_URL = 'https://tkzjitrluawabwpirahs.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRremppdHJsdWF3YWJ3cGlyYWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTIyMTQsImV4cCI6MjEwMjAyODIxNH0.wseVvyeYgd5yWlKYohVwvGgqSU8DiMCMa4urpvOAp4s';
     
     let supabaseClient = null;
     try {
@@ -2707,14 +2707,14 @@
         const { data, error } = await supabaseClient
           .from('consultations')
           .insert([
-            { address, size, name, phone, requests, quote_details: quoteDetails }
+            { address, size, name, phone, requests, quote_details: quoteDetails, status: 'in_progress' }
           ]);
           
         if (error) throw error;
         
         // --- 디스코드 웹훅 알림 전송 시작 ---
         try {
-          const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1428685207745335337/jOgtnC_AH5H3sro73V3qR1jKwvg7Fs0K4J6c4qALLFQvtRMYdv-CuC4IFwdVTdDYIuTU';
+          const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1536327691173761024/ABSjbmRcwxdhA6PKoKDlV7CgV2QAjOn3HWT5XWCDB1FjgMIjtB--eZgzYONDJZG2oiko';
           
           const discordMessage = {
             content: `🚨 **새로운 홈버디 상담 예약이 접수되었습니다!** 🚨\n\n👤 **고객명**: ${name}\n📱 **연락처**: ${phone}\n🏠 **주소**: ${address}\n📏 **집 평수**: ${size}m²\n\n💰 **선택 견적**: ${quoteDetails}\n📝 **기타 요청**: ${requests || '없음'}`
