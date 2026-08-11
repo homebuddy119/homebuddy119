@@ -1,0 +1,16 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to prevent sleep
+        run: |
+          curl -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRremppdHJsdWF3YWJ3cGlyYWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTIyMTQsImV4cCI6MjEwMjAyODIxNH0.wseVvyeYgd5yWlKYohVwvGgqSU8DiMCMa4urpvOAp4s" \
+               -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRremppdHJsdWF3YWJ3cGlyYWhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTIyMTQsImV4cCI6MjEwMjAyODIxNH0.wseVvyeYgd5yWlKYohVwvGgqSU8DiMCMa4urpvOAp4s" \
+               -X GET "https://tkzjitrluawabwpirahs.supabase.co/rest/v1/consultations?select=id&limit=1"
